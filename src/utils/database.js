@@ -19,7 +19,7 @@ class Database {
         await fs.writeFileSync(this.#jsonPath, JSON.stringify(this.#database));
     }
 
-    #startTable() {
+    #startTable(table) {
         if (!(table in this.#database)) {
             this.#database[table] = [];
         }
@@ -40,12 +40,15 @@ class Database {
 
     insert(table, data) {
         this.#startTable(table);
+
         this.#database[table].push(data);
+
         this.#persist();
     }
 
     update(table, id, data) {
         this.#startTable(table);
+
         for (let index = 0; index < this.#database[table].length; index++) {
             if (this.#database[table][index].id === id) {
                 this.#database[table][index] = data;
@@ -61,6 +64,7 @@ class Database {
 
     delete(table, id) {
         this.#startTable(table);
+
         var deteled = false;
         var filteredList = this.#database[table].filter(
             (item) => item.id !== id
