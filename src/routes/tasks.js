@@ -1,8 +1,7 @@
 var express = require("express");
 var router = express.Router();
 var Database = require("../utils/database");
-var isTestEnv = process.env.NODE_ENV === "test";
-var database = new Database(isTestEnv);
+var database = new Database();
 var table = "tasks";
 
 router.get("/", function (_req, res) {

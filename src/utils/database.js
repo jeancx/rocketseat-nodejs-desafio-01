@@ -1,21 +1,32 @@
-var fs = require("fs");
+var fs = require("node:fs");
 
 class Database {
     #jsonPath;
-    #database;
+    #database = {};
 
-    constructor(isTestEnv) {
-        this.#jsonPath = isTestEnv
-            ? "../../database-test.json"
-            : "../../database.json";
-        this.#database = JSON.parse(fs.readFileSync(this.#jsonPath));
+    constructor(jsonPath) {
+        this.#jsonPath = jsonPath ? jsonPath : "../../database.json";
+        console.log("jsonPath", this.#jsonPath);
+
+        if (!fs.existsSync(this.#jsonPath)) {
+            this.#persist();
+        }
+        var data = fs.readFileSync(this.#jsonPath).toString();
+        this.#database = JSON.parse(data);
     }
 
-    #persist() {
-        fs.writeFile(this.#jsonPath, this.#database, "utf8");
+    async #persist() {
+        await fs.writeFileSync(this.#jsonPath, JSON.stringify(this.#database));
+    }
+
+    #startTable() {
+        if (!(table in this.#database)) {
+            this.#database[table] = [];
+        }
     }
 
     select(table, id = null) {
+        this.#startTable(table);
         var list = this.#database[table];
 
         if (id) {
@@ -28,11 +39,13 @@ class Database {
     }
 
     insert(table, data) {
+        this.#startTable(table);
         this.#database[table].push(data);
         this.#persist();
     }
 
     update(table, id, data) {
+        this.#startTable(table);
         for (let index = 0; index < this.#database[table].length; index++) {
             if (this.#database[table][index].id === id) {
                 this.#database[table][index] = data;
@@ -47,6 +60,7 @@ class Database {
     }
 
     delete(table, id) {
+        this.#startTable(table);
         var deteled = false;
         var filteredList = this.#database[table].filter(
             (item) => item.id !== id
